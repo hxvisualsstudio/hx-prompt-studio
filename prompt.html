@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color" content="#100e0c">
+    <meta name="description" content="Explore AI-generated artwork and copy the complete prompt on HX Prompt Studio.">
+
+    <title>Prompt Details | HX Prompt Studio</title>
+
+    <link rel="stylesheet" href="prompt.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="prompt.js" defer></script>
+</head>
+
+<body>
+
+    <header class="details-header">
+        <a class="brand" href="index.html" aria-label="HX Prompt Studio Home">
+            <span class="brand-mark">HX</span>
+
+            <span class="brand-text">
+                <strong>HX PROMPT STUDIO</strong>
+                <small>IMAGINE · CREATE · INSPIRE</small>
+            </span>
+        </a>
+
+        <a href="index.html" class="back-button">
+            ← Back to Gallery
+        </a>
+    </header>
+
+    <main class="details-container">
+
+        <div id="loadingState" class="status-message" role="status">
+            <span class="loader"></span>
+            <p>Loading your creative inspiration...</p>
+        </div>
+
+        <div id="errorState" class="status-message error-state" hidden>
+            <h2>Prompt Not Found</h2>
+            <p id="errorMessage">
+                This prompt could not be loaded.
+            </p>
+
+            <a href="index.html" class="primary-button">
+                Return to Gallery
+            </a>
+        </div>
+
+        <section id="promptDetails" class="details-layout" hidden>
+
+            <!-- LEFT: FULL IMAGE -->
+
+            <div class="image-panel">
+                <div class="image-frame">
+                    <img
+                        id="detailImage"
+                        src=""
+                        alt="AI artwork"
+                    >
+                </div>
+
+                <p class="image-caption">
+                    CREATED WITH AI · DISCOVERED ON HX PROMPT STUDIO
+                </p>
+            </div>
+
+            <!-- RIGHT: PROMPT INFORMATION -->
+
+            <div class="information-panel">
+
+                <div class="prompt-label">
+                    <span class="status-dot"></span>
+                    PROMPT DETAILS
+                    <span id="promptNumber" class="prompt-number"></span>
+                </div>
+
+                <h1 id="detailTitle">Prompt Title</h1>
+
+                <p class="intro-text">
+                    Explore the complete prompt behind this artwork.
+                    Copy it and use it as inspiration for your own
+                    creative projects.
+                </p>
+
+                <div class="prompt-box">
+                    <div class="prompt-box-header">
+                        <span>FULL AI PROMPT</span>
+
+                        <span class="prompt-box-icon">✦</span>
+                    </div>
+
+                    <p id="detailPrompt" class="full-prompt"></p>
+                </div>
+
+                <button
+                    id="copyFullPrompt"
+                    class="primary-button copy-full-button"
+                    type="button"
+                >
+                    <span aria-hidden="true">▣</span>
+                    <span id="copyButtonText">Copy Full Prompt</span>
+                </button>
+
+                <p id="copyStatus" class="copy-status" aria-live="polite"></p>
+
+                <div class="creator-credit">
+                    <span class="credit-symbol">HX</span>
+
+                    <div>
+                        <strong>HX Prompt Studio</strong>
+                        <span>Created by HIMANSHU SHEKHAR</span>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer class="details-footer">
+        <p>
+            © <span id="currentYear"></span>
+            HX Prompt Studio · Images by ChatGPT
+        </p>
+
+        <a href="index.html">Explore More Prompts ↗</a>
+    </footer>
+
+</body>
+</html>
