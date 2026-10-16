@@ -159,8 +159,11 @@ document.addEventListener("DOMContentLoaded", () => {
          * Every card uses the actual Supabase ID.
          * v is only a display number, not the database ID.
          */
+
         const detailsURL = new URL("prompt.html", window.location.href);
+
         detailsURL.searchParams.set("id", String(item.id));
+
         detailsURL.searchParams.set(
             "v",
             String(displayNumber).padStart(3, "0")
@@ -170,7 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
             window.location.href = detailsURL.href;
         }
 
-        /* Image */
+        /* IMAGE */
 
         if (item.image_url) {
             const image = document.createElement("img");
@@ -187,7 +190,7 @@ document.addEventListener("DOMContentLoaded", () => {
             card.appendChild(image);
         }
 
-        /* Content */
+        /* CONTENT */
 
         const content = document.createElement("div");
         content.className = "card-content";
@@ -208,12 +211,14 @@ document.addEventListener("DOMContentLoaded", () => {
             ? words.slice(0, wordLimit).join(" ") + "..."
             : fullPrompt;
 
-        /* View button */
+        /* VIEW PROMPT BUTTON */
 
         const viewButton = document.createElement("button");
+
         viewButton.type = "button";
         viewButton.className = "copy-button";
         viewButton.textContent = "View Prompt →";
+
         viewButton.setAttribute(
             "aria-label",
             `View full prompt: ${titleText}`
@@ -227,7 +232,7 @@ document.addEventListener("DOMContentLoaded", () => {
         content.append(title, promptText, viewButton);
         card.appendChild(content);
 
-        /* Clicking the card or image opens details. */
+        /* CLICKING THE CARD OPENS DETAILS */
 
         card.addEventListener("click", openDetailsPage);
 
@@ -244,7 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return card;
     }
 
-    /* 6. LOAD PUBLISHED PROMPTS */
+    /* 6. LOAD PUBLISHED PROMPTS FROM SUPABASE */
 
     async function loadPublishedPrompts() {
         if (!galleryGrid) return;
@@ -253,7 +258,9 @@ document.addEventListener("DOMContentLoaded", () => {
         galleryGrid.replaceChildren();
 
         const loadingMessage = document.createElement("p");
+
         loadingMessage.textContent = "Loading prompts...";
+
         galleryGrid.appendChild(loadingMessage);
 
         try {
@@ -272,6 +279,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     noResults.hidden = false;
                     noResults.textContent = "No published prompts yet.";
                 }
+
                 return;
             }
 
@@ -297,6 +305,7 @@ document.addEventListener("DOMContentLoaded", () => {
             galleryGrid.replaceChildren();
 
             const message = document.createElement("p");
+
             message.textContent =
                 "Prompts could not be loaded. Please try again later.";
 
@@ -330,8 +339,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
             element.className = "floating-word";
             element.textContent = word;
+
             element.style.left = `${3 + Math.random() * 87}%`;
+
             element.style.animationDelay = `${index * -2.3}s`;
+
             element.style.animationDuration =
                 `${17 + Math.random() * 12}s`;
 
@@ -363,10 +375,15 @@ document.addEventListener("DOMContentLoaded", () => {
             const element = document.createElement("span");
 
             element.className = `falling-object ${className}`;
+
             element.textContent = symbol;
+
             element.setAttribute("aria-hidden", "true");
+
             element.style.left = `${2 + Math.random() * 94}%`;
+
             element.style.animationDelay = `${index * -1.8}s`;
+
             element.style.animationDuration =
                 `${15 + Math.random() * 12}s`;
 
@@ -425,6 +442,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!targetId || targetId === "#") return;
 
             const target = document.querySelector(targetId);
+
             if (!target) return;
 
             event.preventDefault();
@@ -447,7 +465,9 @@ document.addEventListener("DOMContentLoaded", () => {
             ".prompt-card:not([data-reveal-observed])"
         ).forEach((card) => {
             card.dataset.revealObserved = "true";
+
             card.classList.add("reveal-on-scroll");
+
             revealObserver.observe(card);
         });
     }
@@ -464,6 +484,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (!entry.isIntersecting) return;
 
                     entry.target.classList.add("is-visible");
+
                     observer.unobserve(entry.target);
                 });
             },
@@ -475,6 +496,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         revealElements.forEach((element) => {
             element.classList.add("reveal-on-scroll");
+
             revealObserver.observe(element);
         });
 
@@ -517,5 +539,6 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
     console.log("Created by HIMANSHU SHEKHAR.");
+
     console.log("Gallery and View Prompt buttons initialized.");
 });
