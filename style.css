@@ -1,3 +1,4 @@
+
 /* =========================================================
    HX PROMPT STUDIO
    MIDNIGHT LUXURY × DARK ESPRESSO
@@ -756,52 +757,6 @@ input:focus-visible {
 
 .search-box input:focus-visible {
     outline: none;
-}
-
-
-/* ---------- 10. FILTER BUTTONS ---------- */
-
-.filter-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-
-    margin-bottom: 32px;
-}
-
-.filter-button {
-    min-height: 39px;
-
-    padding: 8px 17px;
-
-    color: var(--text-secondary);
-    background: transparent;
-
-    border: 1px solid var(--border);
-    border-radius: 999px;
-
-    font-size: 11px;
-    font-weight: 600;
-
-    transition:
-        color var(--transition),
-        background var(--transition),
-        border-color var(--transition),
-        transform var(--transition);
-}
-
-.filter-button:hover {
-    color: var(--gold-light);
-    border-color: var(--gold-dark);
-
-    transform: translateY(-1px);
-}
-
-.filter-button.active {
-    color: #1b1510;
-    background: var(--gold);
-
-    border-color: var(--gold);
 }
 
 
@@ -1871,17 +1826,6 @@ input:focus-visible {
 
     .search-box input {
         font-size: 11px;
-    }
-
-    .filter-buttons {
-        gap: 8px;
-        margin-bottom: 25px;
-    }
-
-    .filter-button {
-        min-height: 35px;
-        padding: 7px 12px;
-        font-size: 10px;
     }
 
     .gallery-grid {
