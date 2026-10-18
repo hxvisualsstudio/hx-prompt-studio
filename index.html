@@ -441,5 +441,31 @@
     <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="script.js"></script>
+```html
+<!-- HX Prompt Studio Background Music -->
+<audio id="backgroundMusic" loop preload="auto">
+    <source src="audio/background-music.mp3.mp3" type="audio/mpeg">
+</audio>
+
+<div class="music-player" id="musicPlayer">
+    <button id="musicToggle" aria-label="Play background music">
+        ♫ <span id="musicStatus">MUSIC OFF</span>
+    </button>
+
+    <div class="volume-control">
+        <span>🔊</span>
+        <input
+            type="range"
+            id="volumeSlider"
+            min="0"
+            max="100"
+            value="70"
+            aria-label="Music volume"
+        >
+        <span id="volumeValue">70%</span>
+    </div>
+</div>
+```
+
 </body>
 </html>

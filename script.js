@@ -542,3 +542,52 @@ document.addEventListener("DOMContentLoaded", () => {
 
     console.log("Gallery and View Prompt buttons initialized.");
 });
+// HX Prompt Studio Music System
+(() => {
+    const music = document.getElementById("backgroundMusic");
+    const toggle = document.getElementById("musicToggle");
+    const status = document.getElementById("musicStatus");
+    const slider = document.getElementById("volumeSlider");
+    const volumeValue = document.getElementById("volumeValue");
+
+    if (!music || !toggle || !status || !slider || !volumeValue) {
+        return;
+    }
+
+    music.volume = 0.70;
+
+    const updateButton = () => {
+        const playing = !music.paused;
+        status.textContent = playing ? "MUSIC ON" : "MUSIC OFF";
+        toggle.setAttribute(
+            "aria-label",
+            playing ? "Turn background music off" : "Turn background music on"
+        );
+    };
+
+    toggle.addEventListener("click", async () => {
+        if (!music.paused) {
+            music.pause();
+        } else {
+            try {
+                await music.play();
+            } catch (error) {
+                status.textContent = "TAP TO RETRY";
+            }
+        }
+
+        updateButton();
+    });
+
+    slider.addEventListener("input", () => {
+        music.volume = Number(slider.value) / 100;
+        volumeValue.textContent = `${slider.value}`;
+    });
+
+    music.addEventListener("play", updateButton);
+    music.addEventListener("pause", updateButton);
+    music.addEventListener("ended", updateButton);
+
+    updateButton();
+})();
+

@@ -2143,3 +2143,64 @@ input:focus-visible {
     display: none !important;
   }
 }
+/* HX Prompt Studio Music Player */
+.music-player {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    background: rgba(20, 20, 20, 0.94);
+    border: 1px solid rgba(218, 180, 100, 0.65);
+    border-radius: 16px;
+    box-shadow: 0 0 20px rgba(218, 180, 100, 0.12);
+    backdrop-filter: blur(12px);
+}
+
+#musicToggle {
+    padding: 10px 14px;
+    border: 1px solid #c9a45c;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #302719, #151515);
+    color: #e8c77e;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+#musicToggle:hover {
+    box-shadow: 0 0 16px rgba(218, 180, 100, 0.35);
+    transform: translateY(-2px);
+}
+
+.volume-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #e8c77e;
+    font-size: 12px;
+}
+
+#volumeSlider {
+    width: 95px;
+    accent-color: #d8b56b;
+    cursor: pointer;
+}
+
+#volumeValue {
+    min-width: 32px;
+    text-align: right;
+}
+
+@media (max-width: 480px) {
+    .music-player {
+        right: 12px;
+        bottom: 12px;
+        padding: 10px;
+    }
+}

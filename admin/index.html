@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HX Prompt Studio | Admin</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+    <header class="topbar">
+        <div class="brand">
+            <div class="logo">HX</div>
+            <div>
+                <h2>HX Prompt Studio</h2>
+                <small>ADMIN STUDIO</small>
+            </div>
+        </div>
+        <span class="creator">Created by HIMANSHU SHEKHAR</span>
+    </header>
+
+    <main class="container">
+
+        <!-- LOGIN -->
+        <section id="loginPanel" class="login-card">
+            <p class="eyebrow">WELCOME BACK</p>
+            <h1>Admin Login</h1>
+            <p class="muted">Sign in to manage your prompt library.</p>
+
+            <form id="loginForm">
+                <label for="adminEmail">Email Address</label>
+                <input
+                    id="adminEmail"
+                    type="email"
+                    autocomplete="username"
+                    required
+                >
+
+                <label for="adminPassword">Password</label>
+                <input
+                    id="adminPassword"
+                    type="password"
+                    autocomplete="current-password"
+                    required
+                >
+
+                <button id="loginButton" class="button primary full" type="submit">
+                    Log In
+                </button>
+
+                <p id="loginMessage" class="message" role="status"></p>
+            </form>
+        </section>
+
+        <!-- DASHBOARD -->
+        <section id="dashboardPanel" hidden>
+
+            <div class="dashboard-heading">
+                <div>
+                    <p class="eyebrow">YOUR WORKSPACE</p>
+                    <h1>Dashboard</h1>
+                    <p class="muted">Manage your AI prompts.</p>
+                </div>
+
+                <button id="logoutButton" class="button secondary" type="button">
+                    Log Out
+                </button>
+            </div>
+
+            <div class="stats">
+                <article class="stat-card">
+                    <span>Total Prompts</span>
+                    <strong id="totalPrompts">0</strong>
+                </article>
+
+                <article class="stat-card">
+                    <span>Published</span>
+                    <strong id="publishedCount">0</strong>
+                </article>
+
+                <article class="stat-card">
+                    <span>Drafts</span>
+                    <strong id="draftCount">0</strong>
+                </article>
+            </div>
+
+            <div class="dashboard-grid">
+
+                <!-- ADD PROMPT -->
+                <section class="panel">
+                    <p class="eyebrow">CREATE CONTENT</p>
+                    <h2>Add New Prompt</h2>
+
+                    <form id="promptForm">
+
+                        <label for="promptTitle">Prompt Title</label>
+                        <input id="promptTitle" type="text" required maxlength="160">
+
+                        
+
+                        <label for="promptTags">Tags</label>
+                        <input
+                            id="promptTags"
+                            type="text"
+                            placeholder="cinematic, realistic, portrait"
+                        >
+
+                        <label for="promptText">Prompt Text</label>
+                        <textarea id="promptText" rows="7" required></textarea>
+
+                        <label for="imageUpload">Preview Image (max 5 MB)</label>
+                        <input id="imageUpload" type="file" accept="image/*" required>
+
+                        <div id="imagePreview" class="image-preview" hidden>
+                            <img id="previewImage" alt="Selected preview">
+                        </div>
+
+                        <div class="button-row">
+                            <button
+                                id="saveDraftButton"
+                                class="button secondary"
+                                type="button"
+                            >
+                                Save Draft
+                            </button>
+
+                            <button
+                                id="publishButton"
+                                class="button primary"
+                                type="submit"
+                            >
+                                Publish Prompt
+                            </button>
+                        </div>
+
+                        <p id="formMessage" class="message" role="status"></p>
+                    </form>
+                </section>
+
+                <!-- PROMPT LIBRARY -->
+                <section class="panel">
+                    <div class="library-heading">
+                        <div>
+                            <p class="eyebrow">YOUR LIBRARY</p>
+                            <h2>Saved Prompts</h2>
+                        </div>
+
+                        <button id="refreshButton" class="button secondary" type="button">
+                            Refresh
+                        </button>
+                    </div>
+
+                    <p id="listMessage" class="muted" role="status">
+                        Sign in to load prompts.
+                    </p>
+
+                    <div id="contentList"></div>
+                </section>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        HX Prompt Studio <span>•</span> Created by HIMANSHU SHEKHAR
+    </footer>
+
+    <!-- Supabase library must load before admin.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="admin.js"></script>
+
+</body>
+</html>
