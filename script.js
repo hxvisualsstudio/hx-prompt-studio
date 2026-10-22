@@ -1,6 +1,7 @@
+```javascript
 /* =========================================================
    HX PROMPT STUDIO
-   PREMIUM DARK LUXURY EDITION
+   WARM CREAM & CHAMPAGNE GOLD EDITION
    Created by HIMANSHU SHEKHAR
    ========================================================= */
 
@@ -16,7 +17,9 @@ document.addEventListener("DOMContentLoaded", () => {
         "sb_publishable_rgJhqO8JwC5ZqI2fBVQ11Q_NjCL2BZS";
 
     if (!window.supabase) {
-        console.error("HX Prompt Studio: Supabase library not loaded.");
+        console.error(
+            "HX Prompt Studio: Supabase library not loaded."
+        );
         return;
     }
 
@@ -28,6 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* 2. GLOBAL ELEMENTS */
 
     const body = document.body;
+
     const giftButton = document.getElementById("giftButton");
     const creatorModal = document.getElementById("creatorModal");
     const closeModal = document.getElementById("closeModal");
@@ -38,7 +42,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const noResults = document.getElementById("noResults");
 
     const textLayer = document.getElementById("flower-layer");
-    const objectLayer = document.getElementById("falling-objects");
     const currentYear = document.getElementById("currentYear");
 
     const reduceMotion = window.matchMedia(
@@ -57,10 +60,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!creatorModal) return;
 
         previousFocus = document.activeElement;
+
         creatorModal.hidden = false;
         body.classList.add("modal-open");
 
-        if (closeModal) closeModal.focus();
+        if (closeModal) {
+            closeModal.focus();
+        }
     }
 
     function closeCreatorModal() {
@@ -69,7 +75,10 @@ document.addEventListener("DOMContentLoaded", () => {
         creatorModal.hidden = true;
         body.classList.remove("modal-open");
 
-        if (previousFocus && typeof previousFocus.focus === "function") {
+        if (
+            previousFocus &&
+            typeof previousFocus.focus === "function"
+        ) {
             previousFocus.focus();
         } else if (giftButton) {
             giftButton.focus();
@@ -77,15 +86,24 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (giftButton) {
-        giftButton.addEventListener("click", openCreatorModal);
+        giftButton.addEventListener(
+            "click",
+            openCreatorModal
+        );
     }
 
     if (closeModal) {
-        closeModal.addEventListener("click", closeCreatorModal);
+        closeModal.addEventListener(
+            "click",
+            closeCreatorModal
+        );
     }
 
     if (modalDone) {
-        modalDone.addEventListener("click", closeCreatorModal);
+        modalDone.addEventListener(
+            "click",
+            closeCreatorModal
+        );
     }
 
     if (creatorModal) {
@@ -115,54 +133,82 @@ document.addEventListener("DOMContentLoaded", () => {
             ? searchInput.value.trim().toLowerCase()
             : "";
 
-        const cards = galleryGrid.querySelectorAll(".prompt-card");
+        const cards = galleryGrid.querySelectorAll(
+            ".prompt-card"
+        );
+
         let visibleCount = 0;
 
         cards.forEach((card) => {
             const searchableText = (
-                card.dataset.search || card.textContent || ""
+                card.dataset.search ||
+                card.textContent ||
+                ""
             ).toLowerCase();
 
             const matches = searchableText.includes(term);
+
             card.hidden = !matches;
 
-            if (matches) visibleCount++;
+            if (matches) {
+                visibleCount++;
+            }
         });
 
         if (noResults) {
             noResults.hidden = visibleCount !== 0;
+
+            if (visibleCount === 0 && term !== "") {
+                noResults.textContent =
+                    "No matching prompts found.";
+            } else if (term === "") {
+                noResults.textContent =
+                    "No published prompts yet.";
+            }
         }
     }
 
     if (searchInput) {
-        searchInput.addEventListener("input", filterGallery);
+        searchInput.addEventListener(
+            "input",
+            filterGallery
+        );
     }
 
     /* 5. CREATE GALLERY CARD */
 
     function createPromptCard(item, displayNumber) {
         const card = document.createElement("article");
+
         card.className = "prompt-card";
 
         const titleText = item.title || "Untitled Prompt";
         const fullPrompt = item.prompt || "";
 
         card.dataset.search = `${titleText} ${fullPrompt}`;
+
         card.tabIndex = 0;
         card.setAttribute("role", "link");
+
         card.setAttribute(
             "aria-label",
             `View prompt: ${titleText}`
         );
 
         /*
-         * Every card uses the actual Supabase ID.
-         * v is only a display number, not the database ID.
+         * Use the real Supabase database ID.
+         * The display number is only for the URL's v parameter.
          */
 
-        const detailsURL = new URL("prompt.html", window.location.href);
+        const detailsURL = new URL(
+            "prompt.html",
+            window.location.href
+        );
 
-        detailsURL.searchParams.set("id", String(item.id));
+        detailsURL.searchParams.set(
+            "id",
+            String(item.id)
+        );
 
         detailsURL.searchParams.set(
             "v",
@@ -182,6 +228,7 @@ document.addEventListener("DOMContentLoaded", () => {
             image.alt = titleText;
             image.className = "prompt-image";
             image.loading = "lazy";
+            image.decoding = "async";
 
             image.addEventListener("error", () => {
                 image.hidden = true;
@@ -190,15 +237,18 @@ document.addEventListener("DOMContentLoaded", () => {
             card.appendChild(image);
         }
 
-        /* CONTENT */
+        /* CARD CONTENT */
 
         const content = document.createElement("div");
+
         content.className = "card-content";
 
         const title = document.createElement("h3");
+
         title.textContent = titleText;
 
         const promptText = document.createElement("p");
+
         promptText.className = "prompt-text";
 
         const words = fullPrompt.trim()
@@ -207,9 +257,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const wordLimit = 24;
 
-        promptText.textContent = words.length > wordLimit
-            ? words.slice(0, wordLimit).join(" ") + "..."
-            : fullPrompt;
+        promptText.textContent =
+            words.length > wordLimit
+                ? words.slice(0, wordLimit).join(" ") + "..."
+                : fullPrompt;
 
         /* VIEW PROMPT BUTTON */
 
@@ -230,16 +281,20 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         content.append(title, promptText, viewButton);
+
         card.appendChild(content);
 
-        /* CLICKING THE CARD OPENS DETAILS */
+        /* CLICK CARD TO OPEN DETAILS */
 
         card.addEventListener("click", openDetailsPage);
 
         card.addEventListener("keydown", (event) => {
             if (
                 event.target === card &&
-                (event.key === "Enter" || event.key === " ")
+                (
+                    event.key === "Enter" ||
+                    event.key === " "
+                )
             ) {
                 event.preventDefault();
                 openDetailsPage();
@@ -266,34 +321,50 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const { data, error } = await supabaseClient
                 .from("Prompts")
-                .select("id, title, prompt, image_url, created_at")
+                .select(
+                    "id, title, prompt, image_url, created_at"
+                )
                 .eq("is_published", true)
-                .order("created_at", { ascending: false });
+                .order("created_at", {
+                    ascending: false
+                });
 
-            if (error) throw error;
+            if (error) {
+                throw error;
+            }
 
             galleryGrid.replaceChildren();
 
             if (!data || data.length === 0) {
                 if (noResults) {
                     noResults.hidden = false;
-                    noResults.textContent = "No published prompts yet.";
+                    noResults.textContent =
+                        "No published prompts yet.";
                 }
 
                 return;
             }
 
-            const fragment = document.createDocumentFragment();
+            if (noResults) {
+                noResults.hidden = true;
+            }
+
+            const fragment =
+                document.createDocumentFragment();
 
             data.forEach((item, index) => {
-                fragment.appendChild(
-                    createPromptCard(item, index + 1)
+                const card = createPromptCard(
+                    item,
+                    index + 1
                 );
+
+                fragment.appendChild(card);
             });
 
             galleryGrid.appendChild(fragment);
 
             filterGallery();
+
             observeNewPromptCards();
 
         } catch (error) {
@@ -312,11 +383,15 @@ document.addEventListener("DOMContentLoaded", () => {
             galleryGrid.appendChild(message);
 
         } finally {
-            galleryGrid.setAttribute("aria-busy", "false");
+            galleryGrid.setAttribute(
+                "aria-busy",
+                "false"
+            );
         }
     }
 
-    /* 7. FLOATING TEXT */
+    /* 7. FLOATING TEXT
+       No falling objects are created here. */
 
     function createFloatingWords() {
         if (!textLayer) return;
@@ -340,9 +415,11 @@ document.addEventListener("DOMContentLoaded", () => {
             element.className = "floating-word";
             element.textContent = word;
 
-            element.style.left = `${3 + Math.random() * 87}%`;
+            element.style.left =
+                `${3 + Math.random() * 87}%`;
 
-            element.style.animationDelay = `${index * -2.3}s`;
+            element.style.animationDelay =
+                `${index * -2.3}s`;
 
             element.style.animationDuration =
                 `${17 + Math.random() * 12}s`;
@@ -351,52 +428,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* 8. FALLING OBJECTS */
-
-    function createFallingObjects() {
-        if (!objectLayer) return;
-
-        objectLayer.replaceChildren();
-
-        const objects = [
-            ["💸", "falling-money"],
-            ["📸", "falling-camera"],
-            ["💵", "falling-cash"],
-            ["✨", "falling-sparkle"],
-            ["📷", "falling-camera"],
-            ["💰", "falling-money"],
-            ["💸", "falling-cash"],
-            ["✦", "falling-sparkle"],
-            ["📸", "falling-camera"],
-            ["✨", "falling-sparkle"]
-        ];
-
-        objects.forEach(([symbol, className], index) => {
-            const element = document.createElement("span");
-
-            element.className = `falling-object ${className}`;
-
-            element.textContent = symbol;
-
-            element.setAttribute("aria-hidden", "true");
-
-            element.style.left = `${2 + Math.random() * 94}%`;
-
-            element.style.animationDelay = `${index * -1.8}s`;
-
-            element.style.animationDuration =
-                `${15 + Math.random() * 12}s`;
-
-            element.style.setProperty(
-                "--object-size",
-                `${20 + Math.random() * 15}px`
-            );
-
-            objectLayer.appendChild(element);
-        });
-    }
-
-    /* 9. MOTION ACCESSIBILITY */
+    /* 8. MOTION ACCESSIBILITY */
 
     function initialiseDecorations() {
         const shouldReduceMotion = reduceMotion.matches;
@@ -411,16 +443,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        if (objectLayer) {
-            objectLayer.hidden = shouldReduceMotion;
-
-            if (shouldReduceMotion) {
-                objectLayer.replaceChildren();
-            } else {
-                createFallingObjects();
-            }
-        }
-
         document.documentElement.classList.toggle(
             "reduce-motion",
             shouldReduceMotion
@@ -429,37 +451,52 @@ document.addEventListener("DOMContentLoaded", () => {
 
     initialiseDecorations();
 
-    if (typeof reduceMotion.addEventListener === "function") {
-        reduceMotion.addEventListener("change", initialiseDecorations);
+    if (
+        typeof reduceMotion.addEventListener === "function"
+    ) {
+        reduceMotion.addEventListener(
+            "change",
+            initialiseDecorations
+        );
     }
 
-    /* 10. SMOOTH INTERNAL NAVIGATION */
+    /* 9. SMOOTH INTERNAL NAVIGATION */
 
-    document.querySelectorAll('a[href^="#"]').forEach((link) => {
-        link.addEventListener("click", (event) => {
-            const targetId = link.getAttribute("href");
+    document.querySelectorAll('a[href^="#"]').forEach(
+        (link) => {
+            link.addEventListener("click", (event) => {
+                const targetId =
+                    link.getAttribute("href");
 
-            if (!targetId || targetId === "#") return;
+                if (!targetId || targetId === "#") {
+                    return;
+                }
 
-            const target = document.querySelector(targetId);
+                const target =
+                    document.querySelector(targetId);
 
-            if (!target) return;
+                if (!target) return;
 
-            event.preventDefault();
+                event.preventDefault();
 
-            target.scrollIntoView({
-                behavior: reduceMotion.matches ? "auto" : "smooth",
-                block: "start"
+                target.scrollIntoView({
+                    behavior: reduceMotion.matches
+                        ? "auto"
+                        : "smooth",
+                    block: "start"
+                });
             });
-        });
-    });
+        }
+    );
 
-    /* 11. SCROLL REVEAL */
+    /* 10. SCROLL REVEAL */
 
     let revealObserver = null;
 
     function observeNewPromptCards() {
-        if (!revealObserver || !galleryGrid) return;
+        if (!revealObserver || !galleryGrid) {
+            return;
+        }
 
         galleryGrid.querySelectorAll(
             ".prompt-card:not([data-reveal-observed])"
@@ -477,11 +514,16 @@ document.addEventListener("DOMContentLoaded", () => {
         ".about-decoration, .contact-card, .contact-heading"
     );
 
-    if ("IntersectionObserver" in window && !reduceMotion.matches) {
+    if (
+        "IntersectionObserver" in window &&
+        !reduceMotion.matches
+    ) {
         revealObserver = new IntersectionObserver(
             (entries, observer) => {
                 entries.forEach((entry) => {
-                    if (!entry.isIntersecting) return;
+                    if (!entry.isIntersecting) {
+                        return;
+                    }
 
                     entry.target.classList.add("is-visible");
 
@@ -506,7 +548,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* 12. GIFT BUTTON ENTRANCE */
+    /* 11. GIFT BUTTON ENTRANCE */
 
     if (giftButton && !reduceMotion.matches) {
         giftButton.animate(
@@ -522,13 +564,14 @@ document.addEventListener("DOMContentLoaded", () => {
             ],
             {
                 duration: 650,
-                easing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+                easing:
+                    "cubic-bezier(0.2, 0.8, 0.2, 1)",
                 fill: "both"
             }
         );
     }
 
-    /* 13. INITIALISE GALLERY */
+    /* 12. INITIALISE GALLERY */
 
     loadPublishedPrompts();
 
@@ -540,54 +583,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     console.log("Created by HIMANSHU SHEKHAR.");
 
-    console.log("Gallery and View Prompt buttons initialized.");
+    console.log(
+        "Gallery and View Prompt buttons initialized."
+    );
 });
-// HX Prompt Studio Music System
-(() => {
-    const music = document.getElementById("backgroundMusic");
-    const toggle = document.getElementById("musicToggle");
-    const status = document.getElementById("musicStatus");
-    const slider = document.getElementById("volumeSlider");
-    const volumeValue = document.getElementById("volumeValue");
-
-    if (!music || !toggle || !status || !slider || !volumeValue) {
-        return;
-    }
-
-    music.volume = 0.70;
-
-    const updateButton = () => {
-        const playing = !music.paused;
-        status.textContent = playing ? "MUSIC ON" : "MUSIC OFF";
-        toggle.setAttribute(
-            "aria-label",
-            playing ? "Turn background music off" : "Turn background music on"
-        );
-    };
-
-    toggle.addEventListener("click", async () => {
-        if (!music.paused) {
-            music.pause();
-        } else {
-            try {
-                await music.play();
-            } catch (error) {
-                status.textContent = "TAP TO RETRY";
-            }
-        }
-
-        updateButton();
-    });
-
-    slider.addEventListener("input", () => {
-        music.volume = Number(slider.value) / 100;
-        volumeValue.textContent = `${slider.value}`;
-    });
-
-    music.addEventListener("play", updateButton);
-    music.addEventListener("pause", updateButton);
-    music.addEventListener("ended", updateButton);
-
-    updateButton();
-})();
-
+```

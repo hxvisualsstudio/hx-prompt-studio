@@ -13,7 +13,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta name="theme-color" content="#121212">
+    <meta name="theme-color" content="#f7f2e9">
     <meta name="description" content="HX Prompt Studio — Explore, discover and copy creative AI prompts.">
 
     <title>HX Prompt Studio | Create Beyond Limits</title>
@@ -25,7 +25,6 @@
 
     <!-- Floating Background Effects -->
     <div id="flower-layer" aria-hidden="true"></div>
-    <div id="falling-objects" aria-hidden="true"></div>
 
     <!-- ================= NAVBAR ================= -->
     <header class="navbar">
@@ -215,10 +214,10 @@
         <!-- ================= ABOUT ================= -->
         <section class="about-section" id="about">
 
-            <div class="about-decoration" aria-hidden="true">
-                <span>HX</span>
+            <div class="about-decoration" aria-label="HX Prompt Studio logo">
+                <div class="about-logo-mark" aria-hidden="true">HX</div>
                 <div class="about-decoration-line"></div>
-                <small>CREATIVE UNIVERSE</small>
+                <small>IMAGINE · PROMPT · CREATE</small>
             </div>
 
             <div class="about-content">
@@ -231,14 +230,9 @@
                 </h2>
 
                 <p>
-                    HX Prompt Studio is a space for curious minds, visual
-                    storytellers, and creators who believe that every great
-                    creation begins with an idea.
-                </p>
-
-                <p>
-                    Explore new styles, discover inspiration, and use creative
-                    prompts as a starting point for your next masterpiece.
+                    HX Prompt Studio is a creative space for visual storytellers
+                    and curious minds. Discover inspiring prompts, explore new
+                    styles, and turn your ideas into something extraordinary.
                 </p>
 
                 <div class="about-signature">
@@ -441,29 +435,6 @@
     <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="script.js"></script>
-<!-- HX Prompt Studio Background Music -->
-<audio id="backgroundMusic" loop preload="auto">
-    <source src="audio/background-music.mp3.mp3" type="audio/mpeg">
-</audio>
-
-<div class="music-player" id="musicPlayer">
-    <button id="musicToggle" aria-label="Play background music">
-        ♫ <span id="musicStatus">MUSIC OFF</span>
-    </button>
-
-    <div class="volume-control">
-        <span>🔊</span>
-        <input
-            type="range"
-            id="volumeSlider"
-            min="0"
-            max="100"
-            value="70"
-            aria-label="Music volume"
-        >
-        <span id="volumeValue">70%</span>
-    </div>
-</div>
 
 </body>
 </html>
