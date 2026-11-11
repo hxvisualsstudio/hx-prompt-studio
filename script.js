@@ -1,68 +1,563 @@
-```javascript
-/* =========================================================
-   HX PROMPT STUDIO
-   WARM CREAM & CHAMPAGNE GOLD EDITION
-   Created by HIMANSHU SHEKHAR
-   ========================================================= */
+"use strict";
 
 document.addEventListener("DOMContentLoaded", () => {
-    "use strict";
-
-    /* 1. SUPABASE CONFIGURATION */
+    /* =========================================
+       HX PROMPT STUDIO — GALLERY SCRIPT
+       ========================================= */
 
     const SUPABASE_URL =
         "https://ptguetcuvkbnspzdobkj.supabase.co";
 
-    const SUPABASE_PUBLISHABLE_KEY =
+    const SUPABASE_KEY =
         "sb_publishable_rgJhqO8JwC5ZqI2fBVQ11Q_NjCL2BZS";
 
-    if (!window.supabase) {
-        console.error(
-            "HX Prompt Studio: Supabase library not loaded."
-        );
-        return;
-    }
-
-    const supabaseClient = window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_PUBLISHABLE_KEY
-    );
-
-    /* 2. GLOBAL ELEMENTS */
-
-    const body = document.body;
+    const galleryGrid = document.getElementById("galleryGrid");
+    const searchInput = document.getElementById("searchInput");
+    const noResults = document.getElementById("noResults");
+    const currentYear = document.getElementById("currentYear");
 
     const giftButton = document.getElementById("giftButton");
     const creatorModal = document.getElementById("creatorModal");
     const closeModal = document.getElementById("closeModal");
     const modalDone = document.getElementById("modalDone");
 
-    const searchInput = document.getElementById("searchInput");
-    const galleryGrid = document.getElementById("galleryGrid");
-    const noResults = document.getElementById("noResults");
+    const flowerLayer = document.getElementById("flower-layer");
 
-    const textLayer = document.getElementById("flower-layer");
-    const currentYear = document.getElementById("currentYear");
-
-    const reduceMotion = window.matchMedia(
+    const prefersReducedMotion = window.matchMedia(
         "(prefers-reduced-motion: reduce)"
     );
+
+    let supabaseClient = null;
+    let allPrompts = [];
+    let searchTimer = null;
+
+    /* =========================================
+       PREMIUM COLLECTION POPUP
+       ========================================= */
+
+    const premiumModal = document.getElementById("premiumModal");
+    const premiumModalClose =
+        document.getElementById("premiumModalClose");
+    const premiumModalLater =
+        document.getElementById("premiumModalLater");
+
+    const premiumNavLinks =
+        document.querySelectorAll(".premium-nav-link");
+
+    const premiumModalDialog = premiumModal
+        ? premiumModal.querySelector(".premium-modal")
+        : null;
+
+    let previousPremiumFocus = null;
+    let premiumAutoTimer = null;
+
+    function openPremiumModal() {
+        if (!premiumModal) return;
+
+        previousPremiumFocus = document.activeElement;
+
+        premiumModal.hidden = false;
+        document.body.classList.add("premium-modal-open");
+
+        try {
+            sessionStorage.setItem("hxPremiumPopupShown", "1");
+        } catch (error) {
+            // The popup still works if session storage is unavailable.
+        }
+
+        window.requestAnimationFrame(() => {
+            if (premiumModalClose) {
+                premiumModalClose.focus();
+            } else if (premiumModalDialog) {
+                premiumModalDialog.focus();
+            }
+        });
+    }
+
+    function closePremiumModal() {
+        if (!premiumModal || premiumModal.hidden) return;
+
+        premiumModal.hidden = true;
+        document.body.classList.remove("premium-modal-open");
+
+        if (
+            previousPremiumFocus &&
+            typeof previousPremiumFocus.focus === "function"
+        ) {
+            previousPremiumFocus.focus();
+        }
+    }
+
+    if (premiumModalClose) {
+        premiumModalClose.addEventListener(
+            "click",
+            closePremiumModal
+        );
+    }
+
+    if (premiumModalLater) {
+        premiumModalLater.addEventListener(
+            "click",
+            closePremiumModal
+        );
+    }
+
+    if (premiumModal) {
+        premiumModal.addEventListener("click", (event) => {
+            if (event.target === premiumModal) {
+                closePremiumModal();
+            }
+        });
+    }
+
+    premiumNavLinks.forEach((link) => {
+        link.addEventListener("click", (event) => {
+            event.preventDefault();
+
+            if (premiumAutoTimer) {
+                window.clearTimeout(premiumAutoTimer);
+            }
+
+            openPremiumModal();
+        });
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (
+            event.key === "Escape" &&
+            premiumModal &&
+            !premiumModal.hidden
+        ) {
+            closePremiumModal();
+        }
+    });
+
+    // Automatically display the popup once per browser tab session.
+    let premiumAlreadyShown = false;
+
+    try {
+        premiumAlreadyShown =
+            sessionStorage.getItem("hxPremiumPopupShown") === "1";
+    } catch (error) {
+        premiumAlreadyShown = false;
+    }
+
+    if (premiumModal && !premiumAlreadyShown) {
+        premiumAutoTimer = window.setTimeout(() => {
+            openPremiumModal();
+        }, 1200);
+    }
+
+    /* =========================================
+       INITIAL SETUP
+       ========================================= */
 
     if (currentYear) {
         currentYear.textContent = new Date().getFullYear();
     }
 
-    /* 3. CREATOR GIFT POPUP */
+    if (!galleryGrid) {
+        console.error(
+            "HX Prompt Studio: #galleryGrid was not found in index.html."
+        );
+        return;
+    }
 
-    let previousFocus = null;
+    if (
+        !window.supabase ||
+        typeof window.supabase.createClient !== "function"
+    ) {
+        showGalleryMessage(
+            "The gallery service could not start. Please refresh the page."
+        );
+
+        console.error(
+            "Supabase library is missing. Check the Supabase CDN script."
+        );
+
+        return;
+    }
+
+    try {
+        supabaseClient = window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_KEY
+        );
+    } catch (error) {
+        console.error("Supabase initialization failed:", error);
+
+        showGalleryMessage(
+            "Unable to initialize the gallery. Please try again later."
+        );
+
+        return;
+    }
+
+    /* =========================================
+       SAFE TEXT HELPERS
+       ========================================= */
+
+    function makeElement(tag, className, text) {
+        const element = document.createElement(tag);
+
+        if (className) {
+            element.className = className;
+        }
+
+        if (text !== undefined && text !== null) {
+            element.textContent = String(text);
+        }
+
+        return element;
+    }
+
+    function normalizeText(value) {
+        return String(value || "")
+            .toLocaleLowerCase()
+            .trim();
+    }
+
+    function showGalleryMessage(message) {
+        if (!galleryGrid) return;
+
+        galleryGrid.replaceChildren();
+
+        const messageBox = makeElement(
+            "p",
+            "gallery-status-message",
+            message
+        );
+
+        messageBox.setAttribute("role", "status");
+        galleryGrid.appendChild(messageBox);
+
+        if (noResults) {
+            noResults.hidden = true;
+        }
+    }
+
+    function isValidImageUrl(value) {
+        if (typeof value !== "string" || !value.trim()) {
+            return false;
+        }
+
+        try {
+            const url = new URL(value);
+
+            return (
+                url.protocol === "https:" ||
+                url.protocol === "http:"
+            );
+        } catch {
+            return false;
+        }
+    }
+
+    /* =========================================
+       PROMPT CARD CREATION
+       ========================================= */
+
+    function createPromptCard(item, displayNumber) {
+        const card = makeElement("article", "prompt-card");
+
+        const imageLink = makeElement("a", "prompt-image-link");
+
+        imageLink.href =
+            "prompt.html?id=" +
+            encodeURIComponent(String(item.id)) +
+            "&v=" +
+            encodeURIComponent(String(displayNumber));
+
+        imageLink.setAttribute(
+            "aria-label",
+            "View prompt: " + (item.title || "Untitled prompt")
+        );
+
+        const imageWrapper = makeElement(
+            "div",
+            "prompt-image-wrapper"
+        );
+
+        const image = document.createElement("img");
+
+        image.className = "prompt-image";
+        image.alt = item.title || "AI artwork";
+        image.loading = displayNumber <= 3 ? "eager" : "lazy";
+        image.decoding = "async";
+        image.referrerPolicy = "no-referrer";
+
+        if (displayNumber <= 3) {
+            image.fetchPriority = "high";
+        }
+
+        if (isValidImageUrl(item.image_url)) {
+            image.src = item.image_url;
+
+            image.addEventListener(
+                "error",
+                () => {
+                    image.classList.add("image-load-failed");
+                    image.alt = "Image could not be loaded";
+                },
+                { once: true }
+            );
+        } else {
+            image.classList.add("image-load-failed");
+            image.alt = "No image available";
+        }
+
+        imageWrapper.appendChild(image);
+
+        const imageOverlay = makeElement(
+            "span",
+            "prompt-image-overlay",
+            "VIEW PROMPT ↗"
+        );
+
+        imageWrapper.appendChild(imageOverlay);
+        imageLink.appendChild(imageWrapper);
+
+        const cardBody = makeElement(
+            "div",
+            "prompt-card-body"
+        );
+
+        const numberLabel = makeElement(
+            "span",
+            "prompt-card-number",
+            "PROMPT " + String(displayNumber).padStart(2, "0")
+        );
+
+        const title = makeElement(
+            "h3",
+            "prompt-card-title",
+            item.title || "Untitled Prompt"
+        );
+
+        const promptText = String(item.prompt || "").trim();
+
+        const preview = makeElement(
+            "p",
+            "prompt-card-description",
+            promptText.length > 160
+                ? promptText.slice(0, 160).trimEnd() + "…"
+                : promptText
+        );
+
+        const actions = makeElement(
+            "div",
+            "prompt-card-actions"
+        );
+
+        const viewButton = makeElement(
+            "a",
+            "primary-button prompt-view-button",
+            "Explore Prompt ↗"
+        );
+
+        viewButton.href = imageLink.href;
+
+        actions.appendChild(viewButton);
+
+        cardBody.append(
+            numberLabel,
+            title,
+            preview,
+            actions
+        );
+
+        card.append(imageLink, cardBody);
+
+        // Keep categories hidden from the public prompt cards.
+        card.dataset.search = normalizeText(
+            (item.title || "") + " " + promptText
+        );
+
+        return card;
+    }
+
+    /* =========================================
+       LOAD PUBLISHED PROMPTS FROM SUPABASE
+       ========================================= */
+
+    async function loadPublishedPrompts() {
+        showGalleryMessage("Loading creative inspiration…");
+
+        try {
+            const { data, error } = await supabaseClient
+                .from("Prompts")
+                .select("id, title, prompt, image_url, created_at")
+                .eq("is_published", true)
+                .order("created_at", { ascending: false });
+
+            if (error) {
+                throw error;
+            }
+
+            if (!Array.isArray(data)) {
+                throw new Error(
+                    "Supabase returned an unexpected gallery response."
+                );
+            }
+
+            allPrompts = data.filter((item) => {
+                return (
+                    item &&
+                    item.id !== undefined &&
+                    item.id !== null
+                );
+            });
+
+            renderGallery(allPrompts);
+
+            console.info(
+                "HX Prompt Studio: loaded",
+                allPrompts.length,
+                "published prompts."
+            );
+        } catch (error) {
+            console.error(
+                "HX Prompt Studio: failed to load prompts.",
+                error
+            );
+
+            showGalleryMessage(
+                "We couldn't load the prompts right now. Please refresh and try again."
+            );
+        }
+    }
+
+    /* =========================================
+       RENDER GALLERY
+       ========================================= */
+
+    function renderGallery(prompts) {
+galleryGrid.replaceChildren();
+
+if (!prompts.length) {
+    const emptyMessage = makeElement(
+        "p",
+        "gallery-status-message",
+        allPrompts.length
+            ? "No prompts match your search. Try another keyword."
+            : "No published prompts are available yet."
+    );
+
+    emptyMessage.setAttribute("role", "status");
+    galleryGrid.appendChild(emptyMessage);
+
+    if (noResults) {
+        noResults.hidden = true;
+    }
+
+    return;
+}
+
+const fragment = document.createDocumentFragment();
+
+const isSearching = normalizeText(searchInput?.value).length > 0;
+
+// Homepage: show only 5 prompts.
+// Search: search across all published prompts.
+const visiblePrompts = isSearching
+    ? prompts
+    : prompts.slice(0, 5);
+
+visiblePrompts.forEach((item) => {
+    const originalIndex = allPrompts.findIndex(
+        (prompt) => String(prompt.id) === String(item.id)
+    );
+
+    const displayNumber =
+        originalIndex >= 0 ? originalIndex + 1 : 1;
+
+    fragment.appendChild(
+        createPromptCard(item, displayNumber)
+    );
+});
+
+// Show More Prompts card only when additional prompts exist.
+if (!isSearching && allPrompts.length > 5) {
+    const moreCard = makeElement("a", "more-prompts-card");
+
+    moreCard.href = "more-prompts.html";
+    moreCard.setAttribute("aria-label", "Explore more prompts");
+
+    const moreContent = makeElement("div", "more-prompts-content");
+
+    moreContent.appendChild(
+        makeElement("span", "more-prompts-icon", "✦")
+    );
+
+    moreContent.appendChild(
+        makeElement("span", "more-prompts-title", "MORE PROMPTS")
+    );
+
+    moreContent.appendChild(
+        makeElement("span", "more-prompts-arrow", "EXPLORE ALL ↗")
+    );
+
+    moreCard.appendChild(moreContent);
+    fragment.appendChild(moreCard);
+}
+
+galleryGrid.appendChild(fragment);
+
+if (noResults) {
+    noResults.hidden = true;
+}
+
+}
+
+
+    /* =========================================
+       SEARCH
+       ========================================= */
+
+    function filterGallery() {
+        const query = normalizeText(searchInput?.value);
+
+        if (!query) {
+            renderGallery(allPrompts);
+            return;
+        }
+
+        const filteredPrompts = allPrompts.filter((item) => {
+            const searchableText = normalizeText(
+                (item.title || "") + " " + (item.prompt || "")
+            );
+
+            return searchableText.includes(query);
+        });
+
+        renderGallery(filteredPrompts);
+
+        if (noResults) {
+            noResults.hidden = filteredPrompts.length > 0;
+        }
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener("input", () => {
+            window.clearTimeout(searchTimer);
+
+            searchTimer = window.setTimeout(filterGallery, 100);
+        });
+
+        searchInput.addEventListener("search", filterGallery);
+    }
+
+    /* =========================================
+       CREATOR POPUP
+       ========================================= */
 
     function openCreatorModal() {
-        if (!creatorModal) return;
-
-        previousFocus = document.activeElement;
+        if (!creatorModal) {
+            return;
+        }
 
         creatorModal.hidden = false;
-        body.classList.add("modal-open");
+        document.body.classList.add("modal-open");
 
         if (closeModal) {
             closeModal.focus();
@@ -70,26 +565,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function closeCreatorModal() {
-        if (!creatorModal || creatorModal.hidden) return;
+        if (!creatorModal) {
+            return;
+        }
 
         creatorModal.hidden = true;
-        body.classList.remove("modal-open");
+        document.body.classList.remove("modal-open");
 
-        if (
-            previousFocus &&
-            typeof previousFocus.focus === "function"
-        ) {
-            previousFocus.focus();
-        } else if (giftButton) {
+        if (giftButton) {
             giftButton.focus();
         }
     }
 
     if (giftButton) {
-        giftButton.addEventListener(
-            "click",
-            openCreatorModal
-        );
+        giftButton.addEventListener("click", openCreatorModal);
     }
 
     if (closeModal) {
@@ -124,467 +613,134 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    /* 4. SEARCH */
-
-    function filterGallery() {
-        if (!galleryGrid) return;
-
-        const term = searchInput
-            ? searchInput.value.trim().toLowerCase()
-            : "";
-
-        const cards = galleryGrid.querySelectorAll(
-            ".prompt-card"
-        );
-
-        let visibleCount = 0;
-
-        cards.forEach((card) => {
-            const searchableText = (
-                card.dataset.search ||
-                card.textContent ||
-                ""
-            ).toLowerCase();
-
-            const matches = searchableText.includes(term);
-
-            card.hidden = !matches;
-
-            if (matches) {
-                visibleCount++;
-            }
-        });
-
-        if (noResults) {
-            noResults.hidden = visibleCount !== 0;
-
-            if (visibleCount === 0 && term !== "") {
-                noResults.textContent =
-                    "No matching prompts found.";
-            } else if (term === "") {
-                noResults.textContent =
-                    "No published prompts yet.";
-            }
-        }
-    }
-
-    if (searchInput) {
-        searchInput.addEventListener(
-            "input",
-            filterGallery
-        );
-    }
-
-    /* 5. CREATE GALLERY CARD */
-
-    function createPromptCard(item, displayNumber) {
-        const card = document.createElement("article");
-
-        card.className = "prompt-card";
-
-        const titleText = item.title || "Untitled Prompt";
-        const fullPrompt = item.prompt || "";
-
-        card.dataset.search = `${titleText} ${fullPrompt}`;
-
-        card.tabIndex = 0;
-        card.setAttribute("role", "link");
-
-        card.setAttribute(
-            "aria-label",
-            `View prompt: ${titleText}`
-        );
-
-        /*
-         * Use the real Supabase database ID.
-         * The display number is only for the URL's v parameter.
-         */
-
-        const detailsURL = new URL(
-            "prompt.html",
-            window.location.href
-        );
-
-        detailsURL.searchParams.set(
-            "id",
-            String(item.id)
-        );
-
-        detailsURL.searchParams.set(
-            "v",
-            String(displayNumber).padStart(3, "0")
-        );
-
-        function openDetailsPage() {
-            window.location.href = detailsURL.href;
-        }
-
-        /* IMAGE */
-
-        if (item.image_url) {
-            const image = document.createElement("img");
-
-            image.src = item.image_url;
-            image.alt = titleText;
-            image.className = "prompt-image";
-            image.loading = "lazy";
-            image.decoding = "async";
-
-            image.addEventListener("error", () => {
-                image.hidden = true;
-            });
-
-            card.appendChild(image);
-        }
-
-        /* CARD CONTENT */
-
-        const content = document.createElement("div");
-
-        content.className = "card-content";
-
-        const title = document.createElement("h3");
-
-        title.textContent = titleText;
-
-        const promptText = document.createElement("p");
-
-        promptText.className = "prompt-text";
-
-        const words = fullPrompt.trim()
-            ? fullPrompt.trim().split(/\s+/)
-            : [];
-
-        const wordLimit = 24;
-
-        promptText.textContent =
-            words.length > wordLimit
-                ? words.slice(0, wordLimit).join(" ") + "..."
-                : fullPrompt;
-
-        /* VIEW PROMPT BUTTON */
-
-        const viewButton = document.createElement("button");
-
-        viewButton.type = "button";
-        viewButton.className = "copy-button";
-        viewButton.textContent = "View Prompt →";
-
-        viewButton.setAttribute(
-            "aria-label",
-            `View full prompt: ${titleText}`
-        );
-
-        viewButton.addEventListener("click", (event) => {
-            event.stopPropagation();
-            openDetailsPage();
-        });
-
-        content.append(title, promptText, viewButton);
-
-        card.appendChild(content);
-
-        /* CLICK CARD TO OPEN DETAILS */
-
-        card.addEventListener("click", openDetailsPage);
-
-        card.addEventListener("keydown", (event) => {
-            if (
-                event.target === card &&
-                (
-                    event.key === "Enter" ||
-                    event.key === " "
-                )
-            ) {
-                event.preventDefault();
-                openDetailsPage();
-            }
-        });
-
-        return card;
-    }
-
-    /* 6. LOAD PUBLISHED PROMPTS FROM SUPABASE */
-
-    async function loadPublishedPrompts() {
-        if (!galleryGrid) return;
-
-        galleryGrid.setAttribute("aria-busy", "true");
-        galleryGrid.replaceChildren();
-
-        const loadingMessage = document.createElement("p");
-
-        loadingMessage.textContent = "Loading prompts...";
-
-        galleryGrid.appendChild(loadingMessage);
-
-        try {
-            const { data, error } = await supabaseClient
-                .from("Prompts")
-                .select(
-                    "id, title, prompt, image_url, created_at"
-                )
-                .eq("is_published", true)
-                .order("created_at", {
-                    ascending: false
-                });
-
-            if (error) {
-                throw error;
-            }
-
-            galleryGrid.replaceChildren();
-
-            if (!data || data.length === 0) {
-                if (noResults) {
-                    noResults.hidden = false;
-                    noResults.textContent =
-                        "No published prompts yet.";
-                }
-
-                return;
-            }
-
-            if (noResults) {
-                noResults.hidden = true;
-            }
-
-            const fragment =
-                document.createDocumentFragment();
-
-            data.forEach((item, index) => {
-                const card = createPromptCard(
-                    item,
-                    index + 1
-                );
-
-                fragment.appendChild(card);
-            });
-
-            galleryGrid.appendChild(fragment);
-
-            filterGallery();
-
-            observeNewPromptCards();
-
-        } catch (error) {
-            console.error(
-                "HX Prompt Studio: Failed to load prompts.",
-                error
-            );
-
-            galleryGrid.replaceChildren();
-
-            const message = document.createElement("p");
-
-            message.textContent =
-                "Prompts could not be loaded. Please try again later.";
-
-            galleryGrid.appendChild(message);
-
-        } finally {
-            galleryGrid.setAttribute(
-                "aria-busy",
-                "false"
-            );
-        }
-    }
-
-    /* 7. FLOATING TEXT
-       No falling objects are created here. */
+    /* =========================================
+       FLOATING TEXT EFFECT
+       ========================================= */
 
     function createFloatingWords() {
-        if (!textLayer) return;
-
-        textLayer.replaceChildren();
-
-        const words = [
-            "AI MASTER",
-            "HIMANSHU",
-            "HX PROMPT STUDIO",
-            "IMAGINE",
-            "CREATE",
-            "AI MASTER",
-            "HIMANSHU",
-            "VISUAL STORYTELLING"
-        ];
-
-        words.forEach((word, index) => {
-            const element = document.createElement("span");
-
-            element.className = "floating-word";
-            element.textContent = word;
-
-            element.style.left =
-                `${3 + Math.random() * 87}%`;
-
-            element.style.animationDelay =
-                `${index * -2.3}s`;
-
-            element.style.animationDuration =
-                `${17 + Math.random() * 12}s`;
-
-            textLayer.appendChild(element);
-        });
-    }
-
-    /* 8. MOTION ACCESSIBILITY */
-
-    function initialiseDecorations() {
-        const shouldReduceMotion = reduceMotion.matches;
-
-        if (textLayer) {
-            textLayer.hidden = shouldReduceMotion;
-
-            if (shouldReduceMotion) {
-                textLayer.replaceChildren();
-            } else {
-                createFloatingWords();
-            }
-        }
-
-        document.documentElement.classList.toggle(
-            "reduce-motion",
-            shouldReduceMotion
-        );
-    }
-
-    initialiseDecorations();
-
-    if (
-        typeof reduceMotion.addEventListener === "function"
-    ) {
-        reduceMotion.addEventListener(
-            "change",
-            initialiseDecorations
-        );
-    }
-
-    /* 9. SMOOTH INTERNAL NAVIGATION */
-
-    document.querySelectorAll('a[href^="#"]').forEach(
-        (link) => {
-            link.addEventListener("click", (event) => {
-                const targetId =
-                    link.getAttribute("href");
-
-                if (!targetId || targetId === "#") {
-                    return;
-                }
-
-                const target =
-                    document.querySelector(targetId);
-
-                if (!target) return;
-
-                event.preventDefault();
-
-                target.scrollIntoView({
-                    behavior: reduceMotion.matches
-                        ? "auto"
-                        : "smooth",
-                    block: "start"
-                });
-            });
-        }
-    );
-
-    /* 10. SCROLL REVEAL */
-
-    let revealObserver = null;
-
-    function observeNewPromptCards() {
-        if (!revealObserver || !galleryGrid) {
+        if (!flowerLayer || prefersReducedMotion.matches) {
             return;
         }
 
-        galleryGrid.querySelectorAll(
-            ".prompt-card:not([data-reveal-observed])"
-        ).forEach((card) => {
-            card.dataset.revealObserved = "true";
+        flowerLayer.replaceChildren();
 
-            card.classList.add("reveal-on-scroll");
+        const words = [
+            "IMAGINE",
+            "CREATE",
+            "INSPIRE",
+            "INNOVATE",
+            "HX",
+            "CREATIVITY"
+        ];
 
-            revealObserver.observe(card);
+        const fragment = document.createDocumentFragment();
+
+        words.forEach((word, index) => {
+            const item = makeElement(
+                "span",
+                "floating-word",
+                word
+            );
+
+            item.setAttribute("aria-hidden", "true");
+
+            item.style.setProperty(
+                "--float-index",
+                String(index)
+            );
+
+            item.style.setProperty(
+                "--float-left",
+                (8 + index * 16) + "%"
+            );
+
+            fragment.appendChild(item);
         });
+
+        flowerLayer.appendChild(fragment);
     }
 
-    const revealElements = document.querySelectorAll(
-        ".section-heading, .about-content, " +
-        ".about-decoration, .contact-card, .contact-heading"
-    );
+    createFloatingWords();
 
     if (
-        "IntersectionObserver" in window &&
-        !reduceMotion.matches
+        typeof prefersReducedMotion.addEventListener === "function"
     ) {
-        revealObserver = new IntersectionObserver(
-            (entries, observer) => {
-                entries.forEach((entry) => {
-                    if (!entry.isIntersecting) {
-                        return;
-                    }
-
-                    entry.target.classList.add("is-visible");
-
-                    observer.unobserve(entry.target);
-                });
-            },
-            {
-                threshold: 0.12,
-                rootMargin: "0px 0px -30px 0px"
+        prefersReducedMotion.addEventListener("change", (event) => {
+            if (event.matches && flowerLayer) {
+                flowerLayer.replaceChildren();
+            } else {
+                createFloatingWords();
             }
-        );
-
-        revealElements.forEach((element) => {
-            element.classList.add("reveal-on-scroll");
-
-            revealObserver.observe(element);
-        });
-
-    } else {
-        revealElements.forEach((element) => {
-            element.classList.add("is-visible");
         });
     }
 
-    /* 11. GIFT BUTTON ENTRANCE */
+    /* =========================================
+       SMOOTH INTERNAL NAVIGATION
+       ========================================= */
 
-    if (giftButton && !reduceMotion.matches) {
-        giftButton.animate(
-            [
-                {
-                    opacity: 0,
-                    transform: "translateY(-8px) scale(0.92)"
+    document.querySelectorAll('a[href^="#"]').forEach((link) => {
+        link.addEventListener("click", (event) => {
+            const href = link.getAttribute("href");
+
+            if (!href || href === "#") {
+                return;
+            }
+
+            const target = document.querySelector(href);
+
+            if (!target) {
+                return;
+            }
+
+            event.preventDefault();
+
+            target.scrollIntoView({
+                behavior: prefersReducedMotion.matches
+                    ? "auto"
+                    : "smooth",
+                block: "start"
+            });
+
+            if (history.replaceState) {
+                history.replaceState(null, "", href);
+            }
+        });
+    });
+
+    /* =========================================
+       SCROLL REVEAL
+       ========================================= */
+
+    if (
+        !prefersReducedMotion.matches &&
+        "IntersectionObserver" in window
+    ) {
+        const revealElements = document.querySelectorAll(
+            ".reveal, .scroll-reveal"
+        );
+
+        if (revealElements.length) {
+            const revealObserver = new IntersectionObserver(
+                (entries, observer) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add("is-visible");
+                            observer.unobserve(entry.target);
+                        }
+                    });
                 },
-                {
-                    opacity: 1,
-                    transform: "translateY(0) scale(1)"
-                }
-            ],
-            {
-                duration: 650,
-                easing:
-                    "cubic-bezier(0.2, 0.8, 0.2, 1)",
-                fill: "both"
-            }
-        );
+                { threshold: 0.12 }
+            );
+
+            revealElements.forEach((element) => {
+                revealObserver.observe(element);
+            });
+        }
     }
 
-    /* 12. INITIALISE GALLERY */
+    /* =========================================
+       START GALLERY
+       ========================================= */
 
     loadPublishedPrompts();
-
-    console.log(
-        "%c HX PROMPT STUDIO ",
-        "background:#241d19;color:#dfc7a5;padding:8px 12px;" +
-        "font-weight:bold;border:1px solid #92734f;"
-    );
-
-    console.log("Created by HIMANSHU SHEKHAR.");
-
-    console.log(
-        "Gallery and View Prompt buttons initialized."
-    );
 });
-```

@@ -23,34 +23,101 @@
 
         <!-- LOGIN -->
         <section id="loginPanel" class="login-card">
-            <p class="eyebrow">WELCOME BACK</p>
-            <h1>Admin Login</h1>
-            <p class="muted">Sign in to manage your prompt library.</p>
 
-            <form id="loginForm">
-                <label for="adminEmail">Email Address</label>
-                <input
-                    id="adminEmail"
-                    type="email"
-                    autocomplete="username"
-                    required
-                >
+    <p class="eyebrow">WELCOME BACK</p>
+    <h1>Admin Login</h1>
+    <p class="muted">Sign in to manage your prompt library.</p>
 
-                <label for="adminPassword">Password</label>
-                <input
-                    id="adminPassword"
-                    type="password"
-                    autocomplete="current-password"
-                    required
-                >
+    <!-- LOGIN FORM -->
+    <form id="loginForm">
 
-                <button id="loginButton" class="button primary full" type="submit">
-                    Log In
-                </button>
+        <label for="adminEmail">Email Address</label>
+        <input
+            id="adminEmail"
+            type="email"
+            autocomplete="username"
+            required
+        >
 
-                <p id="loginMessage" class="message" role="status"></p>
-            </form>
-        </section>
+        <label for="adminPassword">Password</label>
+        <input
+            id="adminPassword"
+            type="password"
+            autocomplete="current-password"
+            required
+        >
+
+        <button id="loginButton" class="button primary full" type="submit">
+            Log In
+        </button>
+
+        <button
+            id="forgotPasswordButton"
+            type="button"
+            class="button full"
+        >
+            Forgot Password?
+        </button>
+
+        <p id="loginMessage" class="message" role="status"></p>
+    </form>
+
+    <!-- SEND RESET EMAIL -->
+    <form id="resetEmailForm" hidden>
+
+        <h2>Recover Password</h2>
+        <p class="muted">Enter your registered admin email.</p>
+
+        <label for="resetEmail">Email Address</label>
+        <input
+            id="resetEmail"
+            type="email"
+            required
+        >
+
+        <button class="button primary full" type="submit">
+            Send Reset Link
+        </button>
+
+        <button id="backToLoginButton" type="button" class="button full">
+            Back to Login
+        </button>
+
+        <p id="resetMessage" class="message" role="status"></p>
+
+    </form>
+
+    <!-- SET NEW PASSWORD -->
+    <form id="updatePasswordForm" hidden>
+
+        <h2>Set New Password</h2>
+        <p class="muted">Enter your new admin password.</p>
+
+        <label for="newPassword">New Password</label>
+        <input
+            id="newPassword"
+            type="password"
+            minlength="8"
+            required
+        >
+
+        <label for="confirmPassword">Confirm Password</label>
+        <input
+            id="confirmPassword"
+            type="password"
+            minlength="8"
+            required
+        >
+
+        <button class="button primary full" type="submit">
+            Update Password
+        </button>
+
+        <p id="updateMessage" class="message" role="status"></p>
+
+    </form>
+
+</section>
 
         <!-- DASHBOARD -->
         <section id="dashboardPanel" hidden>

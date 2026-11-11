@@ -77,6 +77,26 @@ async function initializeAdmin() {
             "submit",
             handleLogin
         );
+        $("forgotPasswordButton").addEventListener("click", () => {
+    $("loginForm").hidden = true;
+    $("resetEmailForm").hidden = false;
+    showMessage("resetMessage", "", false);
+});
+
+$("backToLoginButton").addEventListener("click", () => {
+    $("resetEmailForm").hidden = true;
+    $("loginForm").hidden = false;
+});
+
+$("resetEmailForm").addEventListener(
+    "submit",
+    handlePasswordReset
+);
+
+$("updatePasswordForm").addEventListener(
+    "submit",
+    handlePasswordUpdate
+);
 
         logoutButton.addEventListener(
             "click",
@@ -121,12 +141,18 @@ async function initializeAdmin() {
         }
 
         supabaseClient.auth.onAuthStateChange(
-            function (event) {
-                if (event === "SIGNED_OUT") {
-                    showLogin();
-                }
-            }
-        );
+    function (event) {
+        if (event === "SIGNED_OUT") {
+            showLogin();
+        }
+
+        if (event === "PASSWORD_RECOVERY") {
+            $("loginForm").hidden = true;
+            $("resetEmailForm").hidden = true;
+            $("updatePasswordForm").hidden = false;
+        }
+    }
+);
 
     } catch (error) {
         console.error(
@@ -821,5 +847,124 @@ async function deletePrompt(id) {
         alert(
             "Delete failed: " + error.message
         );
+    }
+}
+// ======================================
+// PASSWORD RECOVERY
+// ======================================
+
+async function handlePasswordReset(event) {
+    event.preventDefault();
+
+    const email = $("resetEmail").value.trim();
+
+    if (!email) return;
+
+    const button = $("resetEmailForm").querySelector(
+        'button[type="submit"]'
+    );
+
+    button.disabled = true;
+    button.textContent = "Sending...";
+
+    try {
+        const { error } =
+            await supabaseClient.auth.resetPasswordForEmail(
+                email,
+                {
+                    redirectTo:
+                        window.location.origin +
+                        window.location.pathname
+                }
+            );
+
+        if (error) throw error;
+
+        showMessage(
+            "resetMessage",
+            "If the account exists, a password reset email has been sent. Check your inbox.",
+            false
+        );
+
+    } catch (error) {
+        showMessage(
+            "resetMessage",
+            error.message,
+            true
+        );
+
+    } finally {
+        button.disabled = false;
+        button.textContent = "Send Reset Link";
+    }
+}
+
+
+// ======================================
+// UPDATE PASSWORD
+// ======================================
+
+async function handlePasswordUpdate(event) {
+    event.preventDefault();
+
+    const password = $("newPassword").value;
+    const confirmPassword = $("confirmPassword").value;
+
+    if (password.length < 8) {
+        showMessage(
+            "updateMessage",
+            "Password minimum 8 characters ka hona chahiye.",
+            true
+        );
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        showMessage(
+            "updateMessage",
+            "Dono passwords match nahi kar rahe.",
+            true
+        );
+        return;
+    }
+
+    const button = $("updatePasswordForm").querySelector(
+        'button[type="submit"]'
+    );
+
+    button.disabled = true;
+    button.textContent = "Updating...";
+
+    try {
+        const { error } =
+            await supabaseClient.auth.updateUser({
+                password: password
+            });
+
+        if (error) throw error;
+
+        showMessage(
+            "updateMessage",
+            "Password successfully updated! Please log in again.",
+            false
+        );
+
+        await supabaseClient.auth.signOut();
+
+        $("updatePasswordForm").hidden = true;
+        $("loginForm").hidden = false;
+
+        $("adminPassword").value = "";
+
+    } catch (error) {
+        showMessage(
+            "updateMessage",
+            "Password update failed: " + error.message,
+            true
+        );
+
+    } finally {
+        button.disabled = false;
+        button.textContent = "Update Password";
     }
 }
